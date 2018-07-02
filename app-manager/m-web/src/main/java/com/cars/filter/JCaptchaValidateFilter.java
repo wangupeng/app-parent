@@ -2,6 +2,7 @@ package com.cars.filter;
 
 import com.cars.core.yzm.JCaptcha;
 import com.cars.model.sys.SysUser;
+import com.cars.util.cache.EhCacheUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.web.filter.AccessControlFilter;
 import org.apache.shiro.web.util.WebUtils;
@@ -9,6 +10,7 @@ import org.apache.shiro.web.util.WebUtils;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by wangyupeng on 2018/6/29 18:15
@@ -32,9 +34,13 @@ public class JCaptchaValidateFilter extends AccessControlFilter {
         //1、设置验证码是否开启属性，页面可以根据该属性来决定是否显示验证码
         request.setAttribute("jcaptchaEbabled", jcaptchaEbabled);
         HttpServletRequest httpServletRequest = WebUtils.toHttp(request);
+        boolean yzm = false;
+        if(httpServletRequest.getSession().getAttribute("yzm")!=null){
+            yzm = (boolean) httpServletRequest.getSession().getAttribute("yzm");
+        }
 
         //2、判断验证码是否禁用 或不是表单提交（允许访问）
-        if (jcaptchaEbabled == false || !"post".equalsIgnoreCase(httpServletRequest.getMethod())) {
+        if (jcaptchaEbabled == false || !"post".equalsIgnoreCase(httpServletRequest.getMethod())||!yzm) {
             return true;
         }
         //3、此时是表单提交，验证验证码是否正确

@@ -1,10 +1,8 @@
 package com.cars.controller.sys;
 
-import com.cars.common.exception.MyException;
 import com.cars.model.sys.SysUser;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
-import org.apache.shiro.authc.ExcessiveAttemptsException;
 import org.apache.shiro.authc.LockedAccountException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
@@ -34,6 +32,7 @@ public class LoginController {
 
     @RequestMapping(value="/login",method= RequestMethod.POST)
     public String login(HttpServletRequest request, SysUser user, BindingResult result){
+        HttpSession session = request.getSession();
         if (StringUtils.isEmpty(user.getUserName()) || StringUtils.isEmpty(user.getPassWord())) {
             request.setAttribute("user", user);
             request.setAttribute("msg", "用户名或密码不能为空！");
@@ -44,20 +43,25 @@ public class LoginController {
         String exceptionClassName = (String)request.getAttribute("shiroLoginFailure");
         try {
             if("jCaptcha.error".equals(exceptionClassName)){
-                request.setAttribute("msg", "验证码错误！");
                 token.clear();
+                request.setAttribute("user", user);
+                request.setAttribute("msg", "验证码错误！");
                 return "login";
             }
             subject.login(token);
-            user.setMissCount(0);
             return "redirect:index";
         }catch (LockedAccountException lae) {
             token.clear();
+            session.setAttribute("userSession",null);
             request.setAttribute("user", user);
             request.setAttribute("msg", "用户已经被锁定不能登录，请与管理员联系！");
             return "login";
-        } catch (AuthenticationException e) {
+        } /*catch (ExcessiveAttemptsException e) {
+            request.setAttribute("msg", "登录失败多次，账户锁定10分钟");
+            return "login";
+        }*/ catch (AuthenticationException e) {
             token.clear();
+            session.setAttribute("userSession",null);
             request.setAttribute("user", user);
             request.setAttribute("msg", "用户或密码不正确！");
             return "login";
@@ -68,7 +72,6 @@ public class LoginController {
     public String index(){
         return "index";
     }
-
     @RequestMapping(value="/iconfont")
     public String iconfont(){
         return "common/iconfont";

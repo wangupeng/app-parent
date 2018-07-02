@@ -55,7 +55,7 @@
                         <td>${wangfn:isForceLogout(session) ? '是' : '否'}</td>
                         <td>
                             <c:if test="${not wangfn:isForceLogout(session)}">
-                                <a title="强制退出" onclick="javascript:del('${role.roleCode}')" href="${staticServer}/sys/sessions/${session.id}/forceLogout" class="ml-5" data-toggle="tooltip" data-placement="top" style="text-decoration:none"><i class="Hui-iconfont f-16">&#xe631;</i>强制退出</a>
+                                <a title="强制退出" onclick="javascript:forceLogout('${session.id}')" href="#" class="ml-5" data-toggle="tooltip" data-placement="top" style="text-decoration:none"><i class="Hui-iconfont f-16">&#xe631;</i>强制退出</a>
                             </c:if>
                         </td>
                     </tr>
@@ -68,7 +68,14 @@
 		</article>
 	</div>
 <script type="text/javascript">
-
+    /*强制退出*/
+    function forceLogout(id){
+        layer.confirm('确认要强制退出吗？',{icon: 3, title:'提示'},function(index){
+            $.post("sessions/"+id+"/forceLogout", function(result) {
+                location.reload();
+            });
+        });
+    }
 </script>
 </body>
 </html>

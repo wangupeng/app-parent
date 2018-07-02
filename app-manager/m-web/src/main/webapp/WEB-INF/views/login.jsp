@@ -11,10 +11,10 @@
     <script type="text/javascript" src="${staticServer}/static/lib/html5shiv.js"></script>
     <script type="text/javascript" src="${staticServer}/static/lib/respond.min.js"></script>
     <![endif]-->
-    <link href="static/h-ui/css/H-ui.min.css" rel="stylesheet" type="text/css" />
-    <link href="static/h-ui.admin/css/H-ui.login.css" rel="stylesheet" type="text/css" />
-    <link href="static/h-ui.admin/css/style.css" rel="stylesheet" type="text/css" />
-    <link href="static/lib/Hui-iconfont/1.0.8/iconfont.css" rel="stylesheet" type="text/css" />
+    <link href="${staticServer}/static/h-ui/css/H-ui.min.css" rel="stylesheet" type="text/css" />
+    <link href="${staticServer}/static/h-ui.admin/css/H-ui.login.css" rel="stylesheet" type="text/css" />
+    <link href="${staticServer}/static/h-ui.admin/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="${staticServer}/static/lib/Hui-iconfont/1.0.8/iconfont.css" rel="stylesheet" type="text/css" />
     <!--[if IE 6]>
     <script type="text/javascript" src="${staticServer}/static/lib/DD_belatedPNG_0.0.8a-min.js" ></script>
     <script>DD_belatedPNG.fix('*');</script>
@@ -46,12 +46,12 @@
                     <input id="passWord" name="passWord" type="password" value="${user.passWord}" placeholder="密码" class="input-text size-L">
                 </div>
             </div>
-            <c:if test="${jcaptchaEbabled}">
+            <c:if test="${jcaptchaEbabled&&yzm}">
                 <div class="row cl">
                     <div class="formControls col-xs-8 col-xs-offset-3">
                         <input class="input-text size-L" name="jcaptchaCode" type="text" placeholder="验证码" onblur="if(this.value==''){this.value='验证码:'}" onclick="if(this.value=='验证码:'){this.value='';}" value="验证码:" style="width:150px;">
-                        <img src="${staticServer}/jcaptcha.jpg">
-                        <a class="jcaptcha-btn" id="kanbuq" href="javascript:;">看不清，换一张</a>
+                        <img id="yzm" src="${staticServer}/jcaptcha.jpg">
+                        <a class="jcaptcha-btn" id="kanbuq" onclick="getPic()" href="javascript:;" style="text-decoration: none">看不清，换一张</a>
                     </div>
                 </div>
             </c:if>
@@ -85,6 +85,10 @@
             layer.msg("${msg}");
         });
     </c:if>
+    function getPic(){
+        $("#yzm").attr("src","${staticServer}/jcaptcha.jpg?flag="+Math.random());
+    };
+
 </script>
 </body>
 </html>

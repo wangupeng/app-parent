@@ -12,16 +12,16 @@
         <property name="cacheManagerConfigFile" value="classpath:ehcache-shiro.xml" />
     </bean>
     <!-- 凭证匹配器 -->
-    <bean id="credentialsMatcher" class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+    <!--<bean id="credentialsMatcher" class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
         <property name="hashAlgorithmName" value="md5" />
         <property name="hashIterations" value="2" />
-    </bean>
-    <!--<bean id="credentialsMatcher" class="com.cars.shiro.RetryLimitCredentialsMatcher">
+    </bean>-->
+    <bean id="credentialsMatcher" class="com.cars.shiro.RetryLimitCredentialsMatcher">
         <constructor-arg ref="ehCacheManager"/>
         <property name="hashAlgorithmName" value="md5" />
         <property name="hashIterations" value="2" />
         <property name="storedCredentialsHexEncoded" value="true"/>
-    </bean>-->
+    </bean>
     <!-- myRealm -->
     <bean id="myRealm" class="com.cars.shiro.MyShiroRealm">
         <!-- 将凭证匹配器设置到realm中，realm按照凭证匹配器的要求进行散列 -->
@@ -71,7 +71,7 @@
     </bean>
     <bean id="jCaptchaValidateFilter" class="com.cars.filter.JCaptchaValidateFilter">
         <!--是否开启验证码支持-->
-        <property name="jcaptchaEbabled" value="false"/>
+        <property name="jcaptchaEbabled" value="true"/>
         <!--前台提交的验证码参数名-->
         <property name="jcaptchaParam" value="jcaptchaCode"/>
         <!--验证失败后存储到的属性名-->
@@ -100,7 +100,7 @@
                 /static/** = anon
                 /logout = logout
                 /jcaptcha* = anon
-                /login = jCaptchaValidate,authc
+                /login = jCaptchaValidate
                 <!-- 所有url都必须认证通过才可以访问 -->
                 <!--/** = authc-->
             </value>

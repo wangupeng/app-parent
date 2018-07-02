@@ -42,7 +42,9 @@ public class ShiroPermissionFactory extends ShiroFilterFactoryBean {
 //            definitions = definitions+sysResource.getResourceUrl() + " = "+"perms["+sysResource.getResourceUrl()+"],kickout\n";
         }
 
+//        definitions = definitions+"/** = authc";
         definitions = definitions+"/** = forceLogout,authc,kickout";
+
 //        definitions = definitions+"/** = authc,kickout";
 
         //从配置文件加载权限配置
