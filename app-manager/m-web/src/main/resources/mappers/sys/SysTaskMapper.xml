@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cars.dao.sys.SysTaskDao">
+    <!-- 开始任务 -->
+    <update id="start" parameterType="String">
+        update DEMO_SYS_TASK set STATUS='1' where JOB_ID=#{jobId}
+    </update>
+    <!-- 暂停任务 -->
+    <update id="pause" parameterType="String">
+        update DEMO_SYS_TASK set STATUS='0' where JOB_ID=#{jobId}
+    </update>
+</mapper>

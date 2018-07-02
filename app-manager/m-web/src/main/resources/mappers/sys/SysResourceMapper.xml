@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cars.dao.sys.SysResourceDao">
+
+    <!-- 查询资源 -->
+    <select id="listResource" parameterType="SysResource" resultType="SysResource">
+        select t.*,(select count(*) from DEMO_sys_resource where parent_id = t.resource_id) cnt
+        from DEMO.DEMO_sys_resource t
+        where 1=1
+        <if test="resourceId!=null">
+            and t.RESOURCE_ID=#{resourceId}
+        </if>
+        <if test="resourceType!=null">
+           and t.resource_type=#{resourceType}
+        </if>
+        <if test="parentId!=null">
+            AND t.PARENT_ID = #{parentId}
+        </if>
+        order by t.RESOURCE_TYPE,t.PARENT_ID,t.DISPLAY_ORDER
+    </select>
+
+    <!-- 根据ID查询资源 -->
+    <select id="getResourceById" parameterType="String" resultType="SysResource">
+        select t.*,(select resource_name from DEMO_sys_resource where resource_id = t.parent_id) parent_name
+            from DEMO_sys_resource t
+        where RESOURCE_ID = #{resourceId}
+    </select>
+
+    <!-- 查询用户拥有的资源 -->
+    <select id="loadUserResource" parameterType="java.util.HashMap" resultType="SysResource">
+        SELECT re.* FROM DEMO_SYS_RESOURCE re
+        LEFT JOIN DEMO_SYS_ROLE_RESOURCE rr
+        ON re.RESOURCE_ID = rr.RESOURCE_ID
+        LEFT JOIN DEMO_SYS_USER u
+        ON rr.ROLE_ID = u.ROLE_CODE
+        WHERE u.USER_NAME=#{userName}
+        <if test="parentId!=null">
+            AND re.PARENT_ID = #{parentId}
+        </if>
+        <if test="resourceType!=null">
+            AND re.RESOURCE_TYPE = #{resourceType}
+        </if>
+        ORDER BY display_order
+    </select>
+
+    <!-- 删除资源 -->
+    <delete id="deleteResource" parameterType="String">
+        delete from DEMO_SYS_RESOURCE where RESOURCE_ID=#{resourceId} OR PARENT_ID=#{resourceId}
+    </delete>
+
+
+</mapper>

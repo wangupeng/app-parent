@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cars.dao.sys.SysUserDao">
+    <!-- 用户列表 -->
+    <select id="list" parameterType="SysUser" resultType="SysUser">
+        select u.*,r.role_name from DEMO_SYS_USER u,DEMO_SYS_ROLE r
+        where 1=1
+        AND u.ROLE_CODE=r.ROLE_CODE(+)
+        <if test="userName!= null and userName != '' ">
+            AND u.USER_NAME like '%'||#{userName}||'%'
+        </if>
+        <if test="realName!= null and realName != '' ">
+            AND u.REAL_NAME like '%'||#{realName}||'%'
+        </if>
+        <if test="status!= null and status != '' ">
+            AND u.STATUS = #{status}
+        </if>
+        <if test="roleCode!= null and roleCode != '' ">
+            AND u.ROLE_CODE = #{roleCode}
+        </if>
+        order by u.LAST_MODIFIED_DATE DESC
+    </select>
+
+    <!-- 根据用户名查询用户信息 -->
+    <select id="getUserByUserName" parameterType="String" resultType="SysUser">
+        select u.*,r.role_name from DEMO_SYS_USER u,DEMO_SYS_ROLE r
+        where u.ROLE_CODE = r.ROLE_CODE(+)
+        and u.USER_NAME = #{userName,jdbcType=VARCHAR}
+    </select>
+
+    <!-- 锁定用户 -->
+    <update id="lockUser" parameterType="String">
+        update DEMO_SYS_USER set STATUS='2' where USER_NAME=#{userName}
+    </update>
+    <!-- 解锁用户 -->
+    <update id="unlockUser" parameterType="String">
+        update DEMO_SYS_USER set STATUS='1' where USER_NAME=#{userName}
+    </update>
+
+    <!-- 重置密码 -->
+    <update id="resetPassWord" parameterType="SysUser">
+        update DEMO_SYS_USER set PASS_WORD=#{passWord} where USER_NAME=#{userName}
+    </update>
+
+    <!-- 获取旧密码盐 -->
+    <select id="getOldPassSalt" parameterType="String" resultType="SysUser">
+      select PASS_WORD,SALT from DEMO_SYS_USER where USER_NAME=#{userName}
+    </select>
+
+    <!-- 修改用户密码 -->
+    <update id="updatePassWord" parameterType="SysUser">
+        update DEMO_SYS_USER set PASS_WORD=#{passWord},SALT=#{salt} where USER_NAME=#{userName}
+    </update>
+</mapper>

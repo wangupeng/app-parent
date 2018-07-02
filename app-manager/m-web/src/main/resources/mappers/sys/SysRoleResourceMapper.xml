@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cars.dao.sys.SysRoleResourceDao">
+    <!-- 增加角色资源对应关系 -->
+    <insert id="add" parameterType="map">
+        insert into DEMO_SYS_ROLE_RESOURCE (ROLE_ID,RESOURCE_ID) (
+        <foreach collection="resourceIds" index="index" item="resourceId" separator="union all">
+            select
+            #{roleCode},
+            #{resourceId}
+            from dual
+        </foreach>
+        )
+    </insert>
+
+    <!-- 根据资源id删除角色资源关系 -->
+    <delete id="deleteByResourceId" parameterType="String">
+        delete from DEMO_SYS_ROLE_RESOURCE
+        where RESOURCE_ID=#{resourceId}
+    </delete>
+
+    <!-- 根据角色id查询资源 -->
+    <select id="listByRoleCode" parameterType="String" resultType="SysResource">
+        select r.resource_id, s.resource_url
+          from DEMO_sys_role_resource r, DEMO_sys_resource s
+         where r.resource_id = s.resource_id
+           and r.role_id = #{roleCode}
+           /*and resource_type = '2'*/
+    </select>
+</mapper>

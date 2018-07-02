@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemesh>
+    <!--默认情况下，sitemesh 只对 HTTP 响应头中 Content-Type 为 text/html 的类型进行拦截和装饰，我们可以添加更多的 mime 类型-->
+    <mime-type>text/html</mime-type>
+
+    <!-- 默认装饰器，当下面的路径都不匹配时，启用该装饰器进行装饰 -->
+    <mapping decorator="/WEB-INF/views/common/decorator.jsp"/>
+    <!-- 对不同的路径，启用不同的装饰器 -->
+    <mapping path="/**/toAdd*" decorator="/WEB-INF/views/common/decorator2.jsp"/>
+    <mapping path="/**/toUpdate*" decorator="/WEB-INF/views/common/decorator2.jsp"/>
+    <mapping path="/**/toAuthorize" decorator="/WEB-INF/views/common/decorator2.jsp"/>
+
+    <!-- 指明满足“/login”的页面，将被排除，不被装饰 -->
+    <mapping path="/login" exclue="true" />
+    <mapping path="/static/**" exclude="true" />
+    <mapping path="/druid/**" exclude="true" />
+
+    <!-- 自定义标签 -->
+    <!--<content-processor>
+        <tag-rule-bundle class="net.bailesi.demolition.tagrules.ScriptsTagRuleBundle" />
+    </content-processor>-->
+</sitemesh>

@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+    <!-- 缓存管理器 -->
+    <bean id="ehCacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <property name="cacheManagerConfigFile" value="classpath:ehcache-shiro.xml" />
+    </bean>
+    <!-- 凭证匹配器 -->
+    <bean id="credentialsMatcher" class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+        <property name="hashAlgorithmName" value="md5" />
+        <property name="hashIterations" value="2" />
+    </bean>
+    <!--<bean id="credentialsMatcher" class="com.cars.shiro.RetryLimitCredentialsMatcher">
+        <constructor-arg ref="ehCacheManager"/>
+        <property name="hashAlgorithmName" value="md5" />
+        <property name="hashIterations" value="2" />
+        <property name="storedCredentialsHexEncoded" value="true"/>
+    </bean>-->
+    <!-- myRealm -->
+    <bean id="myRealm" class="com.cars.shiro.MyShiroRealm">
+        <!-- 将凭证匹配器设置到realm中，realm按照凭证匹配器的要求进行散列 -->
+        <property name="credentialsMatcher" ref="credentialsMatcher" />
+    </bean>
+
+    <!-- 会话管理器 -->
+    <bean id="sessionManager" class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager">
+        <!-- 定义的是全局的session会话超时时间，此操作会覆盖web.xml文件中的超时时间配置 -->
+        <property name="globalSessionTimeout" value="1800000" />
+        <!-- 删除所有无效的Session对象，此时的session被保存在了内存里面 -->
+        <property name="deleteInvalidSessions" value="true" />
+        <!-- 定义要使用的无效的Session定时调度器 -->
+        <property name="sessionValidationScheduler" ref="sessionValidationScheduler"/>
+        <!-- 需要让此session可以使用该定时调度器进行检测 -->
+        <property name="sessionValidationSchedulerEnabled" value="true"/>
+        <!-- 定义Session可以进行序列化的工具类 -->
+        <property name="sessionDAO" ref="sessionDAO"/>
+        <!-- 所有的session一定要将id设置到Cookie之中，需要提供有Cookie的操作模版 -->
+        <property name="sessionIdCookie" ref="sessionIdCookie"/>
+        <!-- 定义sessionIdCookie模版可以进行操作的启用 -->
+        <property name="sessionIdCookieEnabled" value="true"/>
+        <!-- 去掉URL中的JSESSIONID -->
+        <property name="sessionIdUrlRewritingEnabled" value="true"/>
+    </bean>
+
+    <!-- securityManager安全管理器 -->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <!-- 注入realm -->
+        <property name="realm" ref="myRealm" />
+        <!-- 注入session管理器 -->
+        <property name="sessionManager" ref="sessionManager" />
+        <!-- 注入缓存管理器 -->
+        <property name="cacheManager" ref="ehCacheManager" />
+        <!-- 记住我 -->
+        <!--<property name="rememberMeManager" ref="rememberMeManager" />-->
+    </bean>
+
+    <bean class="com.cars.filter.PermissionFilter" id="shiroPermission" />
+    <bean class="com.cars.filter.ForceLogoutFilter" id="forceLogoutFilter" />
+
+    <bean id="authcFilter" class="com.cars.filter.MyFormAuthenticationFilter">
+        <property name="usernameParam" value="userName"/>
+        <property name="passwordParam" value="passWord"/>
+        <!--<property name="rememberMeParam" value="rememberMe"/>-->
+        <property name="failureKeyAttribute" value="shiroLoginFailure"/>
+    </bean>
+    <bean id="jCaptchaValidateFilter" class="com.cars.filter.JCaptchaValidateFilter">
+        <!--是否开启验证码支持-->
+        <property name="jcaptchaEbabled" value="false"/>
+        <!--前台提交的验证码参数名-->
+        <property name="jcaptchaParam" value="jcaptchaCode"/>
+        <!--验证失败后存储到的属性名-->
+        <property name="failureKeyAttribute" value="shiroLoginFailure"/>
+    </bean>
+
+    <!-- Shiro 的Web过滤器 -->
+    <!--<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">-->
+    <bean id="shiroFilter" class="com.cars.shiro.ShiroPermissionFactory">
+        <property name="securityManager" ref="securityManager" />
+        <property name="loginUrl" value="/login"/>
+        <property name="successUrl" value="/index"/>
+        <property name="unauthorizedUrl" value="/403" />
+        <property name="filters">
+            <map>
+                <entry key="perms" value-ref="shiroPermission"/>
+                <entry key="kickout" value-ref="kickoutSessionControlFilter"/>
+                <entry key="forceLogout" value-ref="forceLogoutFilter"/>
+                <entry key="authc" value-ref="authcFilter"/>
+                <entry key="jCaptchaValidate" value-ref="jCaptchaValidateFilter"/>
+            </map>
+        </property>
+        <!-- 过虑器链定义，从上向下顺序执行，一般将/**放在最下边 -->
+        <property name="filterChainDefinitions">
+            <value>
+                /static/** = anon
+                /logout = logout
+                /jcaptcha* = anon
+                /login = jCaptchaValidate,authc
+                <!-- 所有url都必须认证通过才可以访问 -->
+                <!--/** = authc-->
+            </value>
+        </property>
+    </bean>
+
+    <!-- 并发登录控制 -->
+    <bean id="kickoutSessionControlFilter" class="com.cars.filter.KickoutSessionControlFilter">
+        <property name="cacheManager" ref="ehCacheManager"/>
+        <!--用于根据会话 ID，获取会话进行踢出操作的-->
+        <property name="sessionManager" ref="sessionManager"/>
+        <!--是否踢出后来登录的，默认是 false；即后者登录的用户踢出前者登录的用户；-->
+        <property name="kickoutAfter" value="false"/>
+        <!--同一个用户最大的会话数，默认 1；比如 2 的意思是同一个用户允许最多同时两个人登录；-->
+        <property name="maxSession" value="1"/>
+        <!--被踢出后重定向到的地址；-->
+        <property name="kickoutUrl" value="/login"/>
+    </bean>
+
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean>
+
+    <!-- 会话ID生成器 -->
+    <bean id="sessionIdGenerator" class="org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator"/>
+
+    <!-- 会话DAO -->
+    <bean id="sessionDAO" class="org.apache.shiro.session.mgt.eis.EnterpriseCacheSessionDAO">
+        <!-- 设置session缓存的名字，这个名字可以任意 -->
+        <property name="activeSessionsCacheName" value="shiro-activeSessionCache"/>
+        <!-- 定义该Session DAO操作中所使用的ID生成器 -->
+        <property name="sessionIdGenerator" ref="sessionIdGenerator"/>
+    </bean>
+
+    <!-- 配置需要向Cookie中保存数据的配置模版 -->
+    <bean id="sessionIdCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+        <!-- 在Tomcat运行下默认使用的Cookie的名字 -->
+        <constructor-arg value="sid"/>
+        <!-- 保证该系统不会受到跨域的脚本操作供给 -->
+        <property name="httpOnly" value="true"/>
+        <!-- 定义Cookie的过期时间，单位为秒，如果设置为-1表示浏览器关闭，则Cookie消失 -->
+        <property name="maxAge" value="-1"/>
+    </bean>
+
+    <!-- 配置session的定时验证检测程序类，以让无效的session释放 -->
+    <bean id="sessionValidationScheduler" class="org.apache.shiro.session.mgt.ExecutorServiceSessionValidationScheduler">
+        <!-- 设置session的失效扫描间隔，单位为毫秒 -->
+        <property name="interval" value="1800000" />
+        <!-- 随后还需要定义有一个会话管理器的程序类的引用 -->
+        <property name="sessionManager" ref="sessionManager" />
+    </bean>
+
+    <!-- Shiro生命周期处理器-->
+    <bean class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+
+    <!-- rememberMeManager管理器，写cookie，取出cookie生成用户信息 -->
+    <bean id="rememberMeManager" class="org.apache.shiro.web.mgt.CookieRememberMeManager">
+        <property name="cookie" ref="rememberMeCookie" />
+    </bean>
+    <!-- 记住我cookie -->
+    <bean id="rememberMeCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+        <!-- rememberMe是cookie的名字 -->
+        <constructor-arg value="rememberMe" />
+        <!-- 记住我cookie生效时间30天 -->
+        <property name="maxAge" value="2592000" />
+    </bean>
+</beans>
+
