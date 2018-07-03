@@ -78,7 +78,7 @@ public class CookiesUtil {
         for (String key : cookieMap.keySet()) {
             if(key==deleteKey && key.equals(deleteKey)) {
                 Cookie cookie = cookieMap.get(key);
-                cookie.setMaxAge(MAX_AGE);//设置cookie有效时间为0
+                cookie.setMaxAge(0);//设置cookie有效时间为0
                 cookie.setPath("/");//不设置存储路径
                 response.addCookie(cookie);
             }

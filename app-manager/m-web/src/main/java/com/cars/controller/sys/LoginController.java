@@ -1,6 +1,7 @@
 package com.cars.controller.sys;
 
 import com.cars.model.sys.SysUser;
+import com.cars.util.AES.AESUtil;
 import com.cars.util.cookie.CookiesUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
@@ -13,8 +14,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -32,13 +36,15 @@ public class LoginController {
     }
 
     @RequestMapping(value="/login",method= RequestMethod.POST)
-    public String login(HttpServletRequest request, SysUser user, BindingResult result){
+    public String login(HttpServletRequest request, HttpServletResponse response, SysUser user, BindingResult result){
         HttpSession session = request.getSession();
         if (StringUtils.isEmpty(user.getUserName()) || StringUtils.isEmpty(user.getPassWord())) {
             request.setAttribute("user", user);
             request.setAttribute("msg", "用户名或密码不能为空！");
             return "login";
         }
+
+
 
         Subject subject = SecurityUtils.getSubject();
         UsernamePasswordToken token=new UsernamePasswordToken(user.getUserName(),user.getPassWord());
@@ -51,6 +57,14 @@ public class LoginController {
                 return "login";
             }
             subject.login(token);
+
+            String _cookie = user.getUserName()+","+user.getPassWord();
+            _cookie = AESUtil.encrypt(_cookie,"1234");
+            if("1".equals(user.getRememberMe())){
+                CookiesUtil.setCookie(response,"username",_cookie);
+            } else {
+                CookiesUtil.setCookie(response,"username","");
+            }
             return "redirect:index";
         }catch (LockedAccountException lae) {
             token.clear();
@@ -85,5 +99,13 @@ public class LoginController {
     @RequestMapping(value="/403")
     public String unauthorizedUrl(){
         return "common/403";
+    }
+
+    @RequestMapping(value="/getCookie")
+    @ResponseBody
+    public String getCookie(HttpServletRequest request){
+        Cookie cookie = CookiesUtil.getCookieByName(request,"username");
+        String _cookie = AESUtil.decrypt(cookie.getValue(),"1234");
+        return _cookie;
     }
 }

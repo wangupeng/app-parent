@@ -98,8 +98,9 @@
         <property name="filterChainDefinitions">
             <value>
                 /static/** = anon
-                /logout = logout
                 /jcaptcha* = anon
+                /getCookie = anon
+                /logout = logout
                 /login = jCaptchaValidate
                 <!-- 所有url都必须认证通过才可以访问 -->
                 <!--/** = authc-->
