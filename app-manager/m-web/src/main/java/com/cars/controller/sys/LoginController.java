@@ -1,6 +1,7 @@
 package com.cars.controller.sys;
 
 import com.cars.model.sys.SysUser;
+import com.cars.util.cookie.CookiesUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.LockedAccountException;
@@ -38,6 +39,7 @@ public class LoginController {
             request.setAttribute("msg", "用户名或密码不能为空！");
             return "login";
         }
+
         Subject subject = SecurityUtils.getSubject();
         UsernamePasswordToken token=new UsernamePasswordToken(user.getUserName(),user.getPassWord());
         String exceptionClassName = (String)request.getAttribute("shiroLoginFailure");

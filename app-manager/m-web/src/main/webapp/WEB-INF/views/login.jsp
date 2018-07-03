@@ -56,13 +56,13 @@
                 </div>
             </c:if>
 
-            <%--<div class="row cl">
+            <div class="row cl">
                 <div class="formControls col-xs-8 col-xs-offset-3">
-                    <label for="online">
-                        <input type="checkbox" name="online" id="online" value="">
-                        使我保持登录状态</label>
+                    <label for="rememberMe">
+                        <input type="checkbox" name="rememberMe" id="rememberMe" value="">记住密码
+                    </label>
                 </div>
-            </div>--%>
+            </div>
             <%--<div class="row cl">
                 <label class="form-label col-xs-3"></label>
                 <div class="col-xs-8">
@@ -80,15 +80,53 @@
 </div>
 <div class="footer">Copyright 公司名称 by H-ui.admin.page.v3.0</div>
 <script type="text/javascript">
-    <c:if test="${not empty msg}">
+    $(function () {
+        <c:if test="${not empty msg}">
         layer.ready(function(){
             layer.msg("${msg}");
         });
-    </c:if>
+        </c:if>
+
+        //记住密码功能
+        var str = getCookie("sid");
+        str = str.substring(1,str.length-1);
+        var username = str.split(",")[0];
+        var password = str.split(",")[1];
+        //自动填充用户名和密码
+        $("#username").val(username);
+        $("#pwd").val(password);
+        if(str!=null && str!=""){
+            $("input[type='checkbox']").attr("checked", true);
+        }
+    })
+
     function getPic(){
         $("#yzm").attr("src","${staticServer}/jcaptcha.jpg?flag="+Math.random());
     };
 
+    //记住密码复选框的点击事件
+    function remember(){
+        var remFlag = $("input[type='checkbox']").is(':checked');
+        if(remFlag==true){ //如果选中设置remFlag为true
+            $("#remFlag").val(true);
+        }else{ //如果没选中设置remFlag为false
+            $("#remFlag").val(false);
+        }
+    }
+
+    function getCookie(cname) {
+        var name = cname + "=";
+        var ca = document.cookie.split(';');
+        console.log(ca)
+        for(var i=0; i<ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1);
+            if (c.indexOf(name) != -1)
+                console.log(c.substring(name.length, c.length));
+                return c.substring(name.length, c.length);
+        }
+        return "";
+    }
 </script>
 </body>
 </html>

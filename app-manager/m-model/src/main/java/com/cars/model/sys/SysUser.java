@@ -29,6 +29,7 @@ public class SysUser extends Page {
     private String lastModifiedDate;//上次修改时间
     @Transient
     private Integer missCount = 0;//密码输入错误次数
+    private String rememberMe;//记住我状态
 
     public String getUserName() {
         return userName;
@@ -142,6 +143,14 @@ public class SysUser extends Page {
         this.missCount = missCount;
     }
 
+    public String getRememberMe() {
+        return rememberMe;
+    }
+
+    public void setRememberMe(String rememberMe) {
+        this.rememberMe = rememberMe;
+    }
+
     @Override
     public String toString() {
         return "SysUser{" +
@@ -159,6 +168,7 @@ public class SysUser extends Page {
                 ", lastModifiedUser='" + lastModifiedUser + '\'' +
                 ", lastModifiedDate='" + lastModifiedDate + '\'' +
                 ", missCount=" + missCount +
+                ", rememberMe='" + rememberMe + '\'' +
                 '}';
     }
 }
