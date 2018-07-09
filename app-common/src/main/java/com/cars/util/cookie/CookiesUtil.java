@@ -12,7 +12,7 @@ import java.util.Map;
  * Created by wangyupeng on 2018/7/3 14:51
  */
 public class CookiesUtil {
-    private final static int MAX_AGE = 24*3600;
+    private final static int MAX_AGE = 30*24*3600;
     /**
      * 根据名字获取cookie
      * @param request
